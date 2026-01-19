@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import './App.css'
 
 function App() {
@@ -8,20 +8,59 @@ function App() {
   const [sortBy, setSortBy] = useState('none');
   const [selectedRandomBook, setSelectedRandomBook] = useState(null);
 
-  const addBook = () => {
-    if (title && author) {
-      setBooks([...books, { id: Date.now(), title, author, status: 'To Be Read' }]);
-      setTitle('');
-      setAuthor('');
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  const fetchBooks = async () => {
+    try {
+      const res = await fetch('/api/books');
+      const data = await res.json();
+      setBooks(data);
+    } catch (error) {
+      console.error('Error fetching books:', error);
     }
   };
 
-  const deleteBook = (id) => {
-    setBooks(books.filter(book => book.id !== id));
+  const addBook = async () => {
+    if (title && author) {
+      try {
+        const res = await fetch('/api/books', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, author })
+        });
+        const newBook = await res.json();
+        setBooks([...books, newBook]);
+        setTitle('');
+        setAuthor('');
+      } catch (error) {
+        console.error('Error adding book:', error);
+      }
+    }
   };
 
-  const updateStatus = (id, status) => {
-    setBooks(books.map(book => book.id === id ? { ...book, status } : book));
+  const deleteBook = async (id) => {
+    try {
+      await fetch(`/api/books/${id}`, { method: 'DELETE' });
+      setBooks(books.filter(book => book.id !== id));
+    } catch (error) {
+      console.error('Error deleting book:', error);
+    }
+  };
+
+  const updateStatus = async (id, status) => {
+    try {
+      const res = await fetch(`/api/books/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      const updatedBook = await res.json();
+      setBooks(books.map(book => book.id === updatedBook.id ? updatedBook : book));
+    } catch (error) {
+      console.error('Error updating book:', error);
+    }
   };
 
   const randomSort = () => {
