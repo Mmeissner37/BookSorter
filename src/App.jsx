@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react'
-import './App.css'
+import { useState, useEffect, useMemo } from "react";
+import "./App.css";
 
 function App() {
   const [books, setBooks] = useState([]);
-  const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
-  const [sortBy, setSortBy] = useState('none');
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [sortBy, setSortBy] = useState("none");
   const [selectedRandomBook, setSelectedRandomBook] = useState(null);
 
   useEffect(() => {
@@ -14,73 +14,80 @@ function App() {
 
   const fetchBooks = async () => {
     try {
-      const res = await fetch('/api/books');
+      const res = await fetch("/api/books");
       const data = await res.json();
       setBooks(data);
     } catch (error) {
-      console.error('Error fetching books:', error);
+      console.error("Error fetching books:", error);
     }
   };
 
   const addBook = async () => {
     if (title && author) {
       try {
-        const res = await fetch('/api/books', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, author })
+        const res = await fetch("/api/books", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, author }),
         });
         const newBook = await res.json();
         setBooks([...books, newBook]);
-        setTitle('');
-        setAuthor('');
+        setTitle("");
+        setAuthor("");
       } catch (error) {
-        console.error('Error adding book:', error);
+        console.error("Error adding book:", error);
       }
     }
   };
 
   const deleteBook = async (id) => {
     try {
-      await fetch(`/api/books/${id}`, { method: 'DELETE' });
-      setBooks(books.filter(book => book.id !== id));
+      await fetch(`/api/books/${id}`, { method: "DELETE" });
+      setBooks(books.filter((book) => book.id !== id));
     } catch (error) {
-      console.error('Error deleting book:', error);
+      console.error("Error deleting book:", error);
     }
   };
 
   const updateStatus = async (id, status) => {
     try {
       const res = await fetch(`/api/books/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
       });
       const updatedBook = await res.json();
-      setBooks(books.map(book => book.id === updatedBook.id ? updatedBook : book));
+      setBooks(
+        books.map((book) => (book.id === updatedBook.id ? updatedBook : book)),
+      );
     } catch (error) {
-      console.error('Error updating book:', error);
+      console.error("Error updating book:", error);
     }
   };
 
   const randomSort = () => {
     const shuffled = [...books].sort(() => Math.random() - 0.5);
     setBooks(shuffled);
-    if (shuffled.length > 0) {
-      const randomIndex = Math.floor(Math.random() * shuffled.length);
-      setSelectedRandomBook(shuffled[randomIndex]);
+    const toBeReadBooks = shuffled.filter(
+      (book) => book.status === "To Be Read",
+    );
+    if (toBeReadBooks.length > 0) {
+      const randomIndex = Math.floor(Math.random() * toBeReadBooks.length);
+      setSelectedRandomBook(toBeReadBooks[randomIndex]);
+    } else {
+      setSelectedRandomBook(null);
     }
   };
 
   const sortedBooks = useMemo(() => {
     let sorted = [...books];
-    if (sortBy === 'title-asc') {
+    if (sortBy === "title-asc") {
       sorted.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'title-desc') {
+    } else if (sortBy === "title-desc") {
       sorted.sort((a, b) => b.title.localeCompare(a.title));
-    } else if (sortBy === 'author-asc') {
+    } else if (sortBy === "author-asc") {
       sorted.sort((a, b) => a.author.localeCompare(b.author));
-    } else if (sortBy === 'author-desc') {
+    } else if (sortBy === "author-desc") {
       sorted.sort((a, b) => b.author.localeCompare(a.author));
     }
     return sorted;
@@ -93,22 +100,24 @@ function App() {
         <div className="add-book">
           <input
             value={title}
-            onChange={e => setTitle(e.target.value)}
+            onChange={(e) => setTitle(e.target.value)}
             placeholder="Title"
             type="text"
           />
           <input
             value={author}
-            onChange={e => setAuthor(e.target.value)}
+            onChange={(e) => setAuthor(e.target.value)}
             placeholder="Author"
             type="text"
           />
           <button onClick={addBook}>Add Book</button>
         </div>
-        <button onClick={randomSort} className="sort-btn">Random Sort</button>
+        <button onClick={randomSort} className="sort-btn">
+          Random Sort
+        </button>
         <div className="sort-options">
           <label>Sort by: </label>
-          <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
             <option value="none">No Sort</option>
             <option value="title-asc">Title A-Z</option>
             <option value="title-desc">Title Z-A</option>
@@ -118,12 +127,14 @@ function App() {
         </div>
         <h2>My Books</h2>
         <ul className="book-list">
-          {sortedBooks.map(book => (
+          {sortedBooks.map((book) => (
             <li key={book.id} className="book-item">
-              <span>{book.title} by {book.author}</span>
+              <span>
+                {book.title} by {book.author}
+              </span>
               <select
                 value={book.status}
-                onChange={e => updateStatus(book.id, e.target.value)}
+                onChange={(e) => updateStatus(book.id, e.target.value)}
               >
                 <option>To Be Read</option>
                 <option>Reading</option>
@@ -135,15 +146,19 @@ function App() {
         </ul>
       </div>
       <div className="right-column">
-        {selectedRandomBook && (
-          <div>
-            <h2>Random Book</h2>
-            <p>{selectedRandomBook.title} by {selectedRandomBook.author}</p>
-          </div>
-        )}
+        <div>
+          <h2>Random Book</h2>
+          {selectedRandomBook ? (
+            <p>
+              {selectedRandomBook.title} by {selectedRandomBook.author}
+            </p>
+          ) : (
+            <p>No books to display</p>
+          )}
+        </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
