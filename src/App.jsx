@@ -6,6 +6,7 @@ function App() {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [sortBy, setSortBy] = useState('none');
+  const [selectedRandomBook, setSelectedRandomBook] = useState(null);
 
   const addBook = () => {
     if (title && author) {
@@ -26,6 +27,10 @@ function App() {
   const randomSort = () => {
     const shuffled = [...books].sort(() => Math.random() - 0.5);
     setBooks(shuffled);
+    if (shuffled.length > 0) {
+      const randomIndex = Math.floor(Math.random() * shuffled.length);
+      setSelectedRandomBook(shuffled[randomIndex]);
+    }
   };
 
   const sortedBooks = useMemo(() => {
@@ -89,6 +94,14 @@ function App() {
             </li>
           ))}
         </ul>
+      </div>
+      <div className="right-column">
+        {selectedRandomBook && (
+          <div>
+            <h2>Random Book</h2>
+            <p>{selectedRandomBook.title} by {selectedRandomBook.author}</p>
+          </div>
+        )}
       </div>
     </div>
   )
